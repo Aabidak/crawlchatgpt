@@ -1,76 +1,542 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dashboard - URL Crawler</title>
-  <link rel="stylesheet" href="styles/style.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>URL CRAWLER - Dashboard</title>
+    <style>
+        /* (Same style block used in your index file to preserve exact UI) */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Courier New', monospace; background-color: #000000; color: #e6fff6; min-height: 100vh; overflow-x: hidden; }
+        .dashboard-header { padding: 20px 30px; border-bottom: 2px solid #00ff00; display: flex; justify-content: space-between; align-items: center; background: rgba(0, 255, 0, 0.05); }
+        .dashboard-title { font-size: 1.5rem; color: #00ff00; text-shadow: 0 0 15px #00ff00; }
+        .user-info { display: flex; align-items: center; gap: 20px; }
+        .username { color: #00ffd5; font-size: 1rem; }
+        .btn-logout { padding: 10px 20px; background: #ff3366; border: none; border-radius: 20px; color: #000000; font-weight: bold; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 0 15px rgba(255, 51, 102, 0.7); font-family: 'Courier New', monospace; }
+        
+        /* 🔥 HOVER EFFECTS ADDED */
+        .btn-logout:hover {
+            background: #ff6b92;
+            box-shadow: 0 0 25px #ff6b92, 0 0 45px #ff6b92;
+            transform: translateY(-2px);
+        }
+
+        .btn-crawl:hover {
+            background: #00ffd5;
+            box-shadow: 0 0 25px #00ffd5, 0 0 45px #00ffd5;
+            transform: translateY(-2px);
+        }
+
+        .btn-small:hover {
+            background: #ff3366;
+            color: #000;
+            box-shadow: 0 0 25px #ff3366, 0 0 45px #ff3366;
+            transform: translateY(-2px);
+        }
+
+        .url-item:hover {
+            background: rgba(0,255,213,0.12);
+            box-shadow: 0 0 15px rgba(0,255,213,0.5);
+            transform: translateX(4px);
+        }
+
+        .dashboard-content { display: flex; min-height: calc(100vh - 80px); }
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
+        .crawler-section { max-width: 800px; margin: 0 auto; }
+        .crawler-input-group { display: flex; gap: 15px; margin-bottom: 30px; }
+        .crawler-input { flex: 1; padding: 15px 25px; background: transparent; border: 2px solid #00ff00; border-radius: 32px; color: #e6fff6; font-size: 1rem; font-family: 'Courier New', monospace; outline: none; box-shadow: 0 0 18px rgba(0, 255, 0, 0.5); }
+        .btn-crawl { padding: 15px 40px; background: #00ff00; border: none; border-radius: 32px; color: #000000; font-weight: bold; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 0 18px rgba(0, 255, 0, 0.7); font-family: 'Courier New', monospace; text-transform: uppercase; white-space: nowrap; }
+        .results-section { margin-top: 40px; }
+        .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #00ffd5; }
+        .results-count { font-size: 1.2rem; color: #00ffd5; text-shadow: 0 0 10px #00ffd5; }
+        .results-actions { display: flex; gap: 10px; }
+        .btn-small { padding: 8px 16px; background: transparent; border: 2px solid #ff3366; border-radius: 20px; color: #ff3366; font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 0 10px rgba(255, 51, 102, 0.5); font-family: 'Courier New', monospace; }
+        .url-list { list-style: none; }
+        .url-item { padding: 12px 20px; margin-bottom: 10px; background: rgba(0, 255, 213, 0.05); border: 1px solid #00ffd5; border-radius: 8px; color: #e6fff6; word-break: break-all; transition: all 0.2s ease; }
+        .tree-view { font-family: 'Courier New', monospace; padding: 20px; background: rgba(0, 0, 0, 0.5); border: 1px solid #00ffd5; border-radius: 8px; }
+        .history-sidebar { width: 350px; background: rgba(0, 255, 0, 0.03); border-left: 2px solid #00ff00; padding: 20px; overflow-y: auto; }
+        .history-title { font-size: 1.2rem; color: #00ff00; text-shadow: 0 0 10px #00ff00; margin-bottom: 20px; text-align: center; }
+        .history-item { padding: 15px; margin-bottom: 15px; background: rgba(0, 255, 213, 0.05); border: 1px solid #00ffd5; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+        .history-item:hover { background: rgba(0, 255, 213, 0.15); box-shadow: 0 0 15px rgba(0, 255, 213, 0.5); transform: translateX(-5px); }
+        .history-url { color: #00ffd5; font-size: 0.9rem; word-break: break-all; margin-bottom: 8px; }
+        .history-meta { display: flex; justify-content: space-between; font-size: 0.75rem; color: #e6fff6; opacity: 0.7; }
+        @media (max-width: 768px) { .dashboard-content { flex-direction: column; } .history-sidebar { width: 100%; border-left: none; border-top: 2px solid #00ff00; } .crawler-input-group { flex-direction: column; } .dashboard-header { flex-direction: column; gap: 15px; } }
+
+        /* ===== treeview-fixed styles (added) ===== */
+        #treeContainer { margin-top: 12px; }
+        .ft-root, .ft-root ul { list-style: none; padding-left: 0; margin: 0; }
+        .ft-root li { margin: 6px 0; }
+        .ft-node-header {
+          display: inline-block;
+          padding: 6px 10px;
+          border-radius: 6px;
+          color: #00ff4d;
+          text-shadow: 0 0 8px #00ff4d;
+          font-family: "Courier New", monospace;
+          font-weight: 700;
+          cursor: pointer;
+          user-select: none;
+        }
+        .ft-children { margin-left: 18px; margin-top: 6px; display: none; }
+        .ft-link {
+          display: block;
+          padding: 12px 18px;
+          margin: 8px 0;
+          border-radius: 10px;
+          border: 1px solid rgba(0,255,213,0.2);
+          background: rgba(0,0,0,0.35);
+          color: #e6fff6;
+          text-decoration: none;
+          font-family: "Courier New", monospace;
+          font-size: 14px;
+          box-shadow: inset 0 -10px 40px rgba(0,0,0,0.4);
+        }
+        .ft-link:hover { transform: translateX(6px); box-shadow: 0 0 12px rgba(0,255,213,0.18); }
+        .ft-host { margin: 10px 0 4px 0; }
+        .ft-meta { font-size: 12px; color: rgba(230,255,246,0.6); margin-left: 8px; font-weight: 600; }
+        .ft-node-header::before { content: "▸"; display: inline-block; width: 18px; margin-right: 6px; transition: transform .12s linear; }
+        .ft-node-open > .ft-node-header::before { transform: rotate(90deg); }
+        @media (max-width: 768px) { .ft-link { font-size: 13px; padding: 10px 12px; } .ft-node-header { font-size: 15px; } }
+    </style>
 </head>
 <body>
-  <!-- Top bar -->
-  <header class="topbar">
-    <div class="app-title">URL CRAWLER</div>
-    <div class="user-controls">
-      <div id="userEmail" class="user-email">—</div>
-      <button id="logoutButton" class="btn-logout">Logout</button>
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">URL CRAWLER</h1>
+        <div class="user-info">
+            <span class="username" id="username"></span>
+            <button class="btn-logout" id="logoutBtn">Logout</button>
+        </div>
     </div>
-  </header>
 
-  <!-- Main -->
-  <main id="dashboard" class="dashboard">
-    <!-- LEFT: crawling + results -->
-    <section class="crawl-panel">
-      <form id="crawlForm" class="crawl-form" autocomplete="off">
-        <input id="urlInput" class="input" type="url" placeholder="Enter URL to crawl  (e.g., https://example.com)" required />
-        <button id="startCrawl" class="btn btn-crawl" type="submit">CRAWL</button>
-      </form>
+    <div class="dashboard-content">
+        <div class="main-content">
+            <div class="crawler-section">
+                <div class="crawler-input-group">
+                    <input type="url" id="urlInput" class="crawler-input" placeholder="Enter URL to crawl (e.g., https://example.com)" required>
+                    <button class="btn-crawl" id="crawlBtn">Crawl</button>
+                </div>
 
-      <div class="options-row">
-        <label><input type="checkbox" id="sameOriginOnly" /> Same origin only</label>
-        <label>
-          Depth:
-          <select id="crawlDepth">
-            <option value="0" selected>0 (single page)</option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-          </select>
-        </label>
+                <div id="resultsSection" class="results-section hidden">
+                    <div class="results-header">
+                        <div class="results-count" id="resultsCount"></div>
+                        <div class="results-actions">
+                            <button class="btn-small" id="toggleViewBtn">View as Tree</button>
+                            <button class="btn-small" id="downloadPdfBtn">Download PDF</button>
+                        </div>
+                    </div>
 
-        <div style="margin-left:auto; display:flex; gap:12px; align-items:center;">
-          <button id="toggleViewBtn" class="btn-small">View as Tree</button>
-          <button id="downloadPdfBtn" class="btn-small">Download PDF</button>
+                    <div id="resultsContent"></div>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <div id="crawlStatus" class="status" aria-live="polite" style="margin-top:10px"></div>
-
-      <!-- Results area -->
-      <section class="results-panel">
-        <h2 class="section-title">Results</h2>
-        <div id="results" class="results">
-          <div id="resultsContent" style="min-height:360px; padding: 6px;">
-            <!-- treeView injector will be created here by scripts -->
-          </div>
+        <div class="history-sidebar">
+            <h2 class="history-title">CRAWL HISTORY</h2>
+            <div id="historyList">Loading...</div>
         </div>
-      </section>
-    </section>
+    </div>
 
-    <!-- RIGHT: history -->
-    <aside class="history-panel">
-      <h2>CRAWL HISTORY</h2>
-      <div id="historyList" class="history-list">Loading history...</div>
-      <button id="exportCsv" class="btn-small">Export CSV</button>
-    </aside>
-  </main>
+    <!-- scripts: reuse the modular files you already have in /scripts -->
+    <script type="module" src="scripts/firebase-config.js"></script>
+    <script type="module" src="scripts/treeview.js"></script>
+    <script type="module" src="scripts/crawler.js"></script>
+    <script type="module" src="scripts/history.js"></script>
+    <script type="module" src="scripts/app.js"></script>
 
-  <!-- html2pdf CDN: required for Download PDF -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+    <!-- inlined fix-tree.js (final) -->
+    <script>
+    /* fix-tree.js (inlined) */
+    (function(){
+      'use strict';
 
-  <!-- App scripts (module) -->
-  <script type="module" src="scripts/firebase-config.js"></script>
-  <script type="module" src="scripts/treeview.js"></script>
-  <script type="module" src="scripts/crawler.js"></script>
-  <script type="module" src="scripts/history.js"></script>
-  <script type="module" src="scripts/app.js"></script>
+      const RESULTS_SELECTORS = [
+        '#results',
+        '.results',
+        '#crawl-results',
+        '.crawl-results',
+        '#output',
+        '.output',
+        '#found-urls',
+        '.found-urls',
+        '#main-results',
+        '.main-results'
+      ];
+
+      function findResultsContainer(){
+        for(const s of RESULTS_SELECTORS){
+          const el = document.querySelector(s);
+          if(el) return el;
+        }
+        const candidates = Array.from(document.querySelectorAll('div, section, pre, article'));
+        for(const c of candidates){
+          if(/\bFound\s+\d+\s+URLs\b/i.test(c.textContent) || /\bFound\s+\d+\s+links\b/i.test(c.textContent)){
+            return c;
+          }
+        }
+        return null;
+      }
+
+      function getUrlsFromResults(){
+        const results = findResultsContainer();
+        if(!results) return [];
+
+        const anchors = Array.from(results.querySelectorAll('a[href]'))
+          .filter(a => a.href && a.href.trim().length > 0);
+
+        const plainUrls = [];
+        const textNodes = Array.from(results.querySelectorAll('p, li, pre, span, div'))
+          .map(n => n.textContent)
+          .filter(Boolean);
+
+        const urlRegex = /https?:\/\/[^\s'"]+/g;
+        for(const t of textNodes){
+          const matches = t.match(urlRegex);
+          if(matches){
+            for(const m of matches){
+              if(!anchors.find(a => a.href === m)) plainUrls.push(m);
+            }
+          }
+        }
+
+        const urlObjects = anchors.map(a => ({ url: a.href.trim(), text: a.textContent.trim() || a.href.trim() }));
+        for(const p of plainUrls) urlObjects.push({ url: p.trim(), text: p.trim() });
+
+        const uniq = [];
+        const seen = new Set();
+        for(const u of urlObjects){
+          if(!seen.has(u.url)){
+            seen.add(u.url);
+            uniq.push(u);
+          }
+        }
+        return uniq;
+      }
+
+      function buildTree(urlObjects){
+        const root = {};
+        for(const {url, text} of urlObjects){
+          try {
+            const u = new URL(url);
+            const host = u.hostname;
+            const segments = u.pathname.split('/').filter(Boolean);
+            if(!root[host]) root[host] = { __links: [] , children: {} };
+            if(segments.length === 0) {
+              root[host].__links.push({ path: '/', href: url, text });
+            } else {
+              let node = root[host].children;
+              for(let i=0;i<segments.length;i++){
+                const seg = segments[i];
+                if(!node[seg]) node[seg] = { __links: [], children: {} };
+                if(i === segments.length-1){
+                  node[seg].__links.push({ path: '/' + segments.join('/'), href: url, text });
+                }
+                node = node[seg].children;
+              }
+            }
+          } catch(e){
+            console.warn('fix-tree: malformed url skipped', url);
+          }
+        }
+        return root;
+      }
+
+      function createListFromTree(parent, node, name){
+        const li = document.createElement('li');
+        const header = document.createElement('span');
+        header.className = 'ft-node-header';
+        header.textContent = name;
+        header.style.cursor = 'pointer';
+        header.style.userSelect = 'none';
+        li.appendChild(header);
+
+        const childrenUl = document.createElement('ul');
+        childrenUl.style.display = 'none';
+        childrenUl.className = 'ft-children';
+
+        header.addEventListener('click', () => {
+          childrenUl.style.display = (childrenUl.style.display === 'none') ? 'block' : 'none';
+        });
+
+        if(node.__links && node.__links.length){
+          for(const link of node.__links){
+            const linkLi = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = link.href;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            a.textContent = link.text || link.path || link.href;
+            linkLi.appendChild(a);
+            childrenUl.appendChild(linkLi);
+          }
+        }
+
+        for(const childName of Object.keys(node.children || {})){
+          childrenUl.appendChild(createListFromTree(childrenUl, node.children[childName], childName));
+        }
+
+        li.appendChild(childrenUl);
+        return li;
+      }
+
+      function renderTree(urlObjects){
+        let container = document.querySelector('#treeContainer');
+        if(!container){
+          container = document.createElement('div');
+          container.id = 'treeContainer';
+          const results = findResultsContainer();
+          if(results && results.parentElement){
+            results.parentElement.insertBefore(container, results.nextSibling);
+          } else {
+            document.body.appendChild(container);
+          }
+        }
+
+        container.innerHTML = '';
+        container.style.padding = '12px';
+        container.style.marginTop = '12px';
+        container.style.background = 'transparent';
+        container.style.color = 'inherit';
+
+        if(!urlObjects || urlObjects.length === 0){
+          container.textContent = 'No URLs to display in tree.';
+          return;
+        }
+
+        const treeObj = buildTree(urlObjects);
+        const outerUl = document.createElement('ul');
+        outerUl.className = 'ft-root';
+        for(const host of Object.keys(treeObj)){
+          const hostNode = {
+            __links: treeObj[host].__links || [],
+            children: treeObj[host].children || {}
+          };
+          outerUl.appendChild(createListFromTree(outerUl, hostNode, host));
+        }
+        container.appendChild(outerUl);
+      }
+
+      function findViewButton(){
+        const idCandidates = ['view-tree', 'viewTree', 'view-as-tree', 'btn-view-tree', 'btnTree'];
+        for(const id of idCandidates){
+          const el = document.getElementById(id);
+          if(el) return el;
+        }
+        const all = Array.from(document.querySelectorAll('button, a, input[type="button"], input[type="submit"]'));
+        const btn = all.find(el => /\bview\s+as\s+tree\b/i.test(el.textContent));
+        if(btn) return btn;
+        return all.find(el => /tree/i.test(el.textContent || el.title || el.getAttribute('aria-label') || ''));
+      }
+
+      function attach(){
+        const btn = findViewButton();
+        if(!btn){
+          console.warn('fix-tree: View as Tree button not found (no DOM selector). If your button is created dynamically, please call window.fixTreeAttach() after it appears.');
+          return;
+        }
+        if(btn.dataset.ftAttached === '1') return;
+        btn.dataset.ftAttached = '1';
+
+        btn.addEventListener('click', (e) => {
+          try {
+            if(e && e.target && e.target.tagName === 'A') e.preventDefault();
+          } catch(_){}
+          const urls = getUrlsFromResults();
+          if(urls.length === 0){
+            if(window.lastCrawl && Array.isArray(window.lastCrawl.urls) && window.lastCrawl.urls.length){
+              renderTree(window.lastCrawl.urls.map(u => ({ url: u, text: u })));
+              return;
+            }
+            console.error('fix-tree: No URLs found to build tree. getUrlsFromResults() returned empty.', { resultsContainer: findResultsContainer() });
+            alert('No URLs found to build tree. Please run a crawl first or check console for details.');
+            return;
+          }
+          renderTree(urls);
+        });
+      }
+
+      window.fixTreeAttach = attach;
+      window.fixTreeRender = renderTree;
+
+      setTimeout(attach, 300);
+      setTimeout(attach, 1500);
+
+    })();
+    </script>
+
+    <!-- inlined history-fix.js (updated to detect #historyList) -->
+    <script>
+    /* history-fix.js (inlined & updated for #historyList) */
+    (function(){
+      'use strict';
+
+      const HISTORY_SELECTORS = [
+        '#historyList',      // YOUR actual ID
+        '#historyPanel',
+        '.history-panel',
+        '#crawl-history',
+        '.crawl-history',
+        '#history',
+        '.history'
+      ];
+
+      function findHistoryContainer(){
+        for(const sel of HISTORY_SELECTORS){
+          const el = document.querySelector(sel);
+          if(el) return el;
+        }
+
+        // Fallback: search right sidebar by keyword
+        const possible = Array.from(document.querySelectorAll("div, section, aside"));
+        for(const box of possible){
+          if(/history/i.test(box.textContent)) return box;
+        }
+
+        return document.body; 
+      }
+
+      function renderHistoryEntries(container, entries){
+        container.innerHTML = "";
+
+        if(!entries || entries.length === 0){
+          container.innerHTML = "<p>No history available.</p>";
+          return;
+        }
+
+        const list = document.createElement("ul");
+        list.style.padding = "0";
+        list.style.marginTop = "10px";
+        list.style.listStyle = "none";
+
+        entries.forEach(e => {
+          const li = document.createElement("li");
+          li.style.marginBottom = "10px";
+          li.className = "history-item";
+
+          const title = document.createElement("div");
+          title.className = "history-url";
+          title.textContent = e.url || e.target || "URL";
+
+          const meta = document.createElement("div");
+          meta.className = "history-meta";
+          const ts = e.timestamp ? (typeof e.timestamp.toDate === 'function' ? e.timestamp.toDate() : new Date(e.timestamp)) : (e.date ? new Date(e.date) : null);
+          const left = document.createElement("span");
+          left.textContent = ts ? ts.toLocaleString() : (e.date || "");
+          const right = document.createElement("span");
+          right.textContent = e.note ? e.note : "";
+
+          meta.appendChild(left);
+          meta.appendChild(right);
+
+          li.appendChild(title);
+          li.appendChild(meta);
+
+          list.appendChild(li);
+        });
+
+        container.appendChild(list);
+      }
+
+      async function loadHistoryForUser(uid, limit = 100){
+        const container = findHistoryContainer();
+        if(container && container.dataset && container.dataset.ftAttached === '1') {
+          // already attached - no double load
+        } else if(container) {
+          container.dataset.ftAttached = '1';
+        }
+
+        if(!window.db){
+          console.error('history-fix: Firestore "db" not found on window. Make sure you assign firebase.firestore() to window.db.');
+          container.innerHTML = '<p>History unavailable: Firestore not initialized.</p>';
+          return;
+        }
+
+        // first attempt: the original query (fast, requires correct index if using orderBy with where)
+        try {
+          const q = window.db.collection('history')
+            .where('uid', '==', uid)
+            .orderBy('timestamp', 'desc')
+            .limit(limit);
+          const snap = await q.get();
+          const arr = snap.docs.map(d => d.data());
+          renderHistoryEntries(container, arr);
+          return;
+        } catch (err) {
+          console.error('history-fix: initial history query failed', err);
+          // try to extract the Firebase Console link from the error message
+          const msg = (err && err.message) ? err.message : '';
+          const linkMatch = msg.match(/(https?:\/\/console\.firebase\.google\.com\/[^\s)]+)/);
+          if(linkMatch && linkMatch[1]){
+            const link = linkMatch[1];
+            container.innerHTML = `
+              <div style="padding:8px;">
+                <p>Failed to load history. Firestore query requires an index.</p>
+                <p><a href="${link}" target="_blank" rel="noopener">Click here to create the required index in Firebase Console.</a></p>
+                <p style="font-size:12px;opacity:0.9">Or use the fallback below (client-side sort) if you prefer not to create the index.</p>
+                <button id="history-fallback-btn" style="margin-top:6px;padding:6px 10px;cursor:pointer;">Load fallback (client-side sorted)</button>
+              </div>
+            `;
+            const btn = container.querySelector('#history-fallback-btn');
+            if(btn) btn.addEventListener('click', () => { fallbackLoad(uid, container, limit); });
+            return;
+          } else {
+            // no console link found — try fallback automatically
+            fallbackLoad(uid, container, limit);
+          }
+        }
+      }
+
+      // fallback: fetch all matching docs without orderBy and sort in client
+      async function fallbackLoad(uid, container, limit){
+        try {
+          container.innerHTML = '<p>Loading history (fallback)...</p>';
+          const snap = await window.db.collection('history').where('uid', '==', uid).get();
+          const arr = snap.docs.map(d => d.data());
+          arr.sort((a,b) => {
+            const ta = a.timestamp ? (typeof a.timestamp.toDate === 'function' ? a.timestamp.toDate().getTime() : new Date(a.timestamp).getTime()) : 0;
+            const tb = b.timestamp ? (typeof b.timestamp.toDate === 'function' ? b.timestamp.toDate().getTime() : new Date(b.timestamp).getTime()) : 0;
+            return tb - ta;
+          });
+          renderHistoryEntries(container, arr.slice(0, limit));
+        } catch(e){
+          console.error('history-fix: fallback load failed', e);
+          container.innerHTML = '<p>Failed to load history. Check console for details.</p>';
+        }
+      }
+
+      // expose helper globally for your app to call when user is known
+      window.historyFix = {
+        loadForUser: loadHistoryForUser,
+        fallbackLoad: fallbackLoad
+      };
+
+      // If your app sets window.currentUserUid (common pattern), auto-run after small delay
+      setTimeout(() => {
+        if(window.currentUserUid){
+          loadHistoryForUser(window.currentUserUid);
+        } else if(window.auth && window.auth.currentUser && window.auth.currentUser.uid){
+          loadHistoryForUser(window.auth.currentUser.uid);
+        } else if(window.firebase && window.firebase.auth){
+          // try to attach to firebase auth state change (if available)
+          try {
+            window.firebase.auth().onAuthStateChanged(user => {
+              if(user && user.uid) loadHistoryForUser(user.uid);
+            });
+          } catch(e){}
+        } else {
+          // no auto-run
+        }
+      }, 800);
+
+    })();
+    </script>
+
+    <!-- html2pdf (CDN) required for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+
+    <!-- treeview-fixed.js (drop-in) -->
+    <script src="treeview-fixed.js"></script>
+
+    <!-- path to your uploaded PDF for reference: /mnt/data/crawler_results_1763746525372.pdf -->
+
 </body>
 </html>
