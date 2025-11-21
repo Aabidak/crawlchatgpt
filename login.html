@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login - URL Crawler</title>
+  <link rel="stylesheet" href="styles/style.css" />
+</head>
+<body>
+  <div id="authView" class="auth-view">
+    <div class="auth-form">
+      <h1 id="authTitle" class="auth-title">LOGIN</h1>
+
+      <form id="authForm" autocomplete="off">
+        <div class="form-group">
+          <input type="email" id="email" class="form-input" placeholder="Email" required />
+        </div>
+        <div class="form-group">
+          <input type="password" id="password" class="form-input" placeholder="Password" required />
+        </div>
+
+        <button id="authButton" class="btn" type="submit">Login</button>
+      </form>
+
+      <div class="toggle-text" style="margin-top:12px;">
+        <span id="toggleMessage">Don't have an account?</span>
+        <a id="gotoSignup" class="toggle-link" href="signup.html">Sign Up</a>
+      </div>
+
+      <div id="authMessage" class="auth-message" aria-live="polite" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <script type="module" src="scripts/firebase-config.js"></script>
+  <script type="module" src="scripts/auth.js"></script>
+</body>
+</html>

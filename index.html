@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard - URL Crawler</title>
+  <link rel="stylesheet" href="styles/style.css" />
+</head>
+<body>
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="app-title">URL CRAWLER</div>
+    <div class="user-controls">
+      <div id="userEmail" class="user-email">—</div>
+      <button id="logoutButton" class="btn-logout">Logout</button>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main id="dashboard" class="dashboard">
+    <!-- LEFT: crawling + results -->
+    <section class="crawl-panel">
+      <form id="crawlForm" class="crawl-form" autocomplete="off">
+        <input id="urlInput" class="input" type="url" placeholder="Enter URL to crawl  (e.g., https://example.com)" required />
+        <button id="startCrawl" class="btn btn-crawl" type="submit">CRAWL</button>
+      </form>
+
+      <div class="options-row">
+        <label><input type="checkbox" id="sameOriginOnly" /> Same origin only</label>
+        <label>
+          Depth:
+          <select id="crawlDepth">
+            <option value="0" selected>0 (single page)</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+          </select>
+        </label>
+
+        <div style="margin-left:auto; display:flex; gap:12px; align-items:center;">
+          <button id="toggleViewBtn" class="btn-small">View as Tree</button>
+          <button id="downloadPdfBtn" class="btn-small">Download PDF</button>
+        </div>
+      </div>
+
+      <div id="crawlStatus" class="status" aria-live="polite" style="margin-top:10px"></div>
+
+      <!-- Results area -->
+      <section class="results-panel">
+        <h2 class="section-title">Results</h2>
+        <div id="results" class="results">
+          <div id="resultsContent" style="min-height:360px; padding: 6px;">
+            <!-- treeView injector will be created here by scripts -->
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- RIGHT: history -->
+    <aside class="history-panel">
+      <h2>CRAWL HISTORY</h2>
+      <div id="historyList" class="history-list">Loading history...</div>
+      <button id="exportCsv" class="btn-small">Export CSV</button>
+    </aside>
+  </main>
+
+  <!-- html2pdf CDN: required for Download PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+
+  <!-- App scripts (module) -->
+  <script type="module" src="scripts/firebase-config.js"></script>
+  <script type="module" src="scripts/treeview.js"></script>
+  <script type="module" src="scripts/crawler.js"></script>
+  <script type="module" src="scripts/history.js"></script>
+  <script type="module" src="scripts/app.js"></script>
+</body>
+</html>
